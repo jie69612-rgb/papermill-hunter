@@ -1,0 +1,92 @@
+name: CI
+
+# 触发条件：推送到主分支、对主分支发起 PR、以及手动触发。
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# 同一分支上的新推送会取消上一次仍在运行的 CI ——
+# 避免连续 push 时排队堆积一堆已经过时的构建。
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ====================================================================
+  # 代码风格与静态检查
+  # ====================================================================
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装 ruff
+        run: pip install "ruff>=0.8"
+
+      - name: 代码风格检查
+        run: ruff check src scripts tests
+
+      - name: 代码格式检查
+        # 只检查不修改：CI 的职责是"发现不一致"，不是"顺手改代码"。
+        # 让 CI 自动改代码会导致本地与远端悄悄分叉。
+        run: ruff format --check src scripts tests
+
+  # ====================================================================
+  # 单元测试
+  # ====================================================================
+  test:
+    name: Test (Python ${{ matrix.python-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 跨平台 + 跨 Python 版本。
+        # 本项目大量使用 DuckDB 的 SQL 与文件路径处理，
+        # 这两处最容易出现"在 Windows 上好好的，到 Linux 就崩"的问题
+        # （路径分隔符、大小写敏感、临时目录）。
+        # 所以跨平台测试不是走过场，而是真的在验证假设。
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e . --no-build-isolation
+
+      - name: 运行测试
+        # 注意：CI 上**不跑数据抓取**，所以没有数据仓库。
+        # 涉及真实数据的测试会自动跳过（见 tests/test_dashboard.py 的说明），
+        # 其余测试全部使用合成数据，不依赖网络。
+        # —— 一套需要联网才能跑的测试，在 CI 上会变得极不稳定，
+        #    最后所有人都学会忽略红色 ✗。这是比"测试少"更糟的状态。
+        run: pytest -v --durations=10
+
+      - name: 生成覆盖率报告
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        run: pytest --cov=papermill_hunter --cov-report=term-missing --cov-report=xml
+
+      - name: 上传覆盖率
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: warn

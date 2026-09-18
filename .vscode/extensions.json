@@ -1,0 +1,15 @@
+{
+  "// 说明": "推荐扩展列表。团队成员打开仓库时 VSCode 会提示一键安装，避免'我这里跑不起来'的沟通成本。",
+  "recommendations": [
+    "charliermarsh.ruff",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-duckdb",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "GitHub.vscode-github-actions",
+    "davidanson.vscode-markdownlint"
+  ]
+}

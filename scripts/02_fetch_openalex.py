@@ -20,7 +20,7 @@ from __future__ import annotations
 import argparse
 
 from papermill_hunter.config import get_settings
-from papermill_hunter.ingest.openalex import dataset_dir, fetch_retracted_works
+from papermill_hunter.ingest.openalex import fetch_retracted_works
 from papermill_hunter.logging_conf import get_logger, setup_logging
 
 

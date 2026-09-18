@@ -35,7 +35,7 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -195,8 +195,7 @@ def sync_gitlab_repo(settings: Settings | None = None, *, force: bool = False) -
 
     if not dataset.exists():
         raise FileNotFoundError(
-            f"仓库克隆成功但未找到数据文件：{dataset}\n"
-            f"仓库内容可能已变更，请检查 {GITLAB_REPO_URL}"
+            f"仓库克隆成功但未找到数据文件：{dataset}\n仓库内容可能已变更，请检查 {GITLAB_REPO_URL}"
         )
 
     size_mb = dataset.stat().st_size / 1024 / 1024
@@ -239,7 +238,7 @@ def fetch_retraction_watch_via_http(
     settings.ensure_dirs()
     settings.warn_if_no_email()
 
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    stamp = datetime.now(UTC).strftime("%Y%m%d")
     dest = settings.raw_dir / "retraction_watch" / f"retractionwatch_{stamp}.csv"
 
     if dest.exists() and not force:
@@ -247,9 +246,7 @@ def fetch_retraction_watch_via_http(
         return dest
 
     params = {"mailto": settings.contact_email} if settings.contact_email else None
-    logger.warning(
-        "正在使用已被官方弃用的 Labs API 端点下载，速度可能非常慢（实测约 50 KB/s）。"
-    )
+    logger.warning("正在使用已被官方弃用的 Labs API 端点下载，速度可能非常慢（实测约 50 KB/s）。")
     with ApiClient(settings, qps=1.0, namespace="retraction_watch") as client:
         client.stream_to_file(LEGACY_LABS_API_URL, dest, params=params)
 
@@ -357,15 +354,11 @@ def summarize(df: pd.DataFrame) -> dict[str, object]:
 
     if "country" in df.columns:
         # 多值字段：先按 ';' 拆开再统计，否则会把 "China;United States" 当成一个国家
-        exploded = (
-            df["country"].fillna("").str.split(";").explode().str.strip().replace("", pd.NA).dropna()
-        )
+        exploded = df["country"].fillna("").str.split(";").explode().str.strip().replace("", pd.NA).dropna()
         summary["国家分布 Top10（已拆分多值）"] = exploded.value_counts().head(10).to_dict()
 
     if "reason" in df.columns:
-        exploded = (
-            df["reason"].fillna("").str.split(";").explode().str.strip().replace("", pd.NA).dropna()
-        )
+        exploded = df["reason"].fillna("").str.split(";").explode().str.strip().replace("", pd.NA).dropna()
         summary["撤稿原因 Top15（已拆分多值）"] = exploded.value_counts().head(15).to_dict()
         summary["标注为 Paper Mill 的记录数"] = int((exploded == "Paper Mill").sum())
 

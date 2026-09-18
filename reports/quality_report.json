@@ -1,0 +1,353 @@
+{
+  "summary": {
+    "total": 38,
+    "passed": 37,
+    "errored": 0,
+    "failed_error": 0,
+    "failed_warning": 1
+  },
+  "results": [
+    {
+      "name": "record_id 非空",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "record_id 是整张表的主键，也是所有展开表的外键。一旦出现空值，下游 join 会静默丢行。"
+    },
+    {
+      "name": "record_id 唯一",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "上游若重复推送同一条记录，所有计数类指标都会偏高。这类错误不会报错，只会让每个数字都大一点点。"
+    },
+    {
+      "name": "撤稿日期解析成功率 ≥ 99.5%",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "日期是全部时间趋势分析的基础。解析规则一旦失效（上游改了日期格式），趋势图会静默地少掉一段时间，而图看起来完全正常。设定阈值而不是要求 100%，是因为上游确实存在极个别格式异常的记录。"
+    },
+    {
+      "name": "撤稿日期不晚于今天",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "未来的撤稿日期说明数据录入或解析有误。"
+    },
+    {
+      "name": "撤稿日期不早于 1900 年",
+      "severity": "warning",
+      "violations": 1,
+      "errored": false,
+      "execution_error": null,
+      "passed": false,
+      "rationale": "数据中确实存在一条 1756 年的撤稿记录，几乎可以确定是录入错误。标为 warning 而非 error，是因为我们不想因为一条历史脏数据就阻断整条管道 ——但它必须被看见，不能悄悄混进时间序列里把坐标轴拉歪。"
+    },
+    {
+      "name": "撤稿不早于论文发表（时滞非负）",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "逻辑上不可能：一篇论文不可能在被撤稿之后才发表。出现负时滞说明两个日期中至少有一个是错的。"
+    },
+    {
+      "name": "撤稿性质取值合法",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "Retraction Watch 使用受控词表。出现新取值可能意味着上游扩充了词表，需要我们同步更新分类逻辑 —— 属于要关注但不该阻断发布的情况。"
+    },
+    {
+      "name": "撤稿原因无空值",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "多值字段拆分后若残留空字符串，会在'撤稿原因分布'里凭空多出一个空分类，而且它往往会排进前列 —— 因为它聚集了所有'没写原因'的记录。"
+    },
+    {
+      "name": "撤稿原因表外键完整",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "孤儿记录意味着 join 会静默丢数据。"
+    },
+    {
+      "name": "国家表外键完整",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "国家维度是'中国撤稿占全球一半'这一核心结论的直接依据。一旦出现孤儿记录，join 会静默丢行，让占比算错 —— 而且错得不容易察觉。"
+    },
+    {
+      "name": "作者表外键完整",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "作者合作网络与'高产作者'识别都依赖这张表；孤儿记录会让网络分析凭空少掉节点和边，改变中心性排名。"
+    },
+    {
+      "name": "作者署名顺序从 1 开始连续",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "署名顺序是本项目判断'挂名异常'的关键特征。如果序号出现跳号或重复，说明展开逻辑错了，而基于顺序的分析会得出完全错误的结论。"
+    },
+    {
+      "name": "撤稿记录数不少于 5 万条",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "这是最朴素也最有效的一条'防呆'校验：如果某次采集只拿到了几百条（比如网络中断导致的静默截断），后面所有分析都会基于残缺数据得出结论。给数据量设一个下限，能拦住绝大多数'采集不全'的事故。"
+    },
+    {
+      "name": "数据新鲜度：最近一条撤稿在 400 天内",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "数据管道最隐蔽的风险是'数据静默过期'：代码天天在跑、看板天天在变，但上游其实早就停止更新了。用最新一条记录的日期做哨兵，能及时发现断流。"
+    },
+    {
+      "name": "[量纲] 期刊爆发度 burst_ratio 在 (0, 1] 之间",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "burst_ratio = 峰值年撤稿数 / 撤稿总数，是一个比例，理论上不可能超过 1。它超过 1 只可能意味着分母（总数）算错了 —— 这正是那次真实事故的症状。"
+    },
+    {
+      "name": "[量纲] 期刊单年峰值不超过撤稿总数",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "单年撤稿量是总数的一部分，不可能大于总数。这条和上一条是同一个 bug 的两种表述 —— 冗余校验在这里是有意为之：同一个错误若能触发两条独立规则，说明覆盖到位了。"
+    },
+    {
+      "name": "[量纲] 期刊各比例指标在 0~1 之间",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "所有占比类指标都必须落在 0~1，越界即说明分子分母口径不一致。"
+    },
+    {
+      "name": "[量纲] 风险评分在 0~100 之间",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "评分由百分位排名加权而来，理论上必然落在 0~100。"
+    },
+    {
+      "name": "[量纲] 国家份额在 0~100 之间",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "占比超过 100% 只可能意味着分母取错了。"
+    },
+    {
+      "name": "[一致性] 国家独立完成数不超过总数",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "'该国独立完成'是'涉及该国'的子集，子集不可能大于全集。这类集合包含关系的校验，能抓住 join 逻辑写反的错误。"
+    },
+    {
+      "name": "[一致性] 风险评分表期刊数与合格样本一致",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "评分表应当恰好包含所有达标期刊。数量对不上说明 join 丢了行或放大了行 ——而 join 丢行是不会报错的，只会让排名悄悄缺几个候选。"
+    },
+    {
+      "name": "[一致性] 趋势表年份数与有年份的记录数一致",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "维度表的行数必须覆盖全部维度取值，否则趋势图会缺年份。"
+    },
+    {
+      "name": "[一致性] 趋势表累计值等于各年之和",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "窗口函数的累积求和很容易因为漏写 ORDER BY 或写错窗口范围而算错，而且算错之后曲线依然平滑好看。用重算对拍是最直接的验证。"
+    },
+    {
+      "name": "[量纲] AUC 落在 0~1 之间",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "AUC 是概率，理论上必然落在 0~1。它越界只可能说明**秩的计算写错了** ——这正是本项目真实发生过的事故：并列样本的平均秩取成了各自的行号，导致 paper_mill_share 的 AUC 算成 1.0008。又一次印证：抓住逻辑错误的往往不是复杂的评估，而是'这个数有没有超出它可能的范围'这种最朴素的检查。"
+    },
+    {
+      "name": "[模型] 结构分（无泄漏）AUC 高于 0.5",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "这里刻意校验的是**结构分**而不是严重度分。严重度分包含由 Reason 字段派生的特征，与标签同源（目标泄漏），它的 AUC 必然很高，拿它做校验等于自己骗自己。只有完全不含标签信息的结构分，其 AUC 才代表真实的预测能力。"
+    },
+    {
+      "name": "[模型] 风险分层无倒挂（低风险层精确率不高于高风险层）",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "要检查的是'倒挂'：如果被标为【低风险】的那一层，其命中率反而**高于**【高风险】层，说明分层阈值或权重存在问题，评分的排序方向错了。允许 5 个百分点的抖动，是因为小样本下分层本身就有波动，不该因为一次正常波动就告警。（注意：本条踩过两次坑 —— 最初方向写反了，把'逐层正常下降'误判成违规； 后来又因为列名改名而整条失效。**校验规则本身也是代码，同样会写错。**）"
+    },
+    {
+      "name": "OpenAlex：openalex_id 非空且唯一",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "openalex_id 是跨表关联的主键。分页抓取时若因为断点续传逻辑出错而重复抓取某一页，就会产生重复主键 —— 而重复抓取**不会报错**，只会让作品总数和引用总量静默偏高。"
+    },
+    {
+      "name": "OpenAlex：作者数与服务端计数字段一致",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "n_authors 是我们自己从 JSON 数组长度数出来的，而作者表是展开后落盘的。两者理论上必须相等。不等说明展开逻辑漏了行或多了行 —— 这正是'用两个独立途径计算同一个量、再互相对拍'的经典验证手法。"
+    },
+    {
+      "name": "OpenAlex：引用年份早于发表年份的比例低于 2%",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "【这条规则最初是 error 级，跑全量数据后被降级为 warning。原因值得记录。】小样本试跑时它是通过的；全量跑完后报出 2,255 行违规（占 0.77%）。逐条核查样例后发现，违规作品的标题**全部以 'RETRACTED:' 开头** ——它们是**撤稿声明本身**，不是原始论文。OpenAlex 把撤稿通知单独建成一条作品（publication_year 是通知的年份），但这条记录的 counts_by_year 继承了原论文的引用轨迹，于是出现了'2022 年发表的作品在 2012 年被引用'这种看似荒谬的数据。结论：这是**上游数据特性，不是我们的清洗 bug**。因此正确的处理不是删数据（那会丢失真实引用信息），而是把规则降级为 warning 并写清原因 ——**一条会在正常数据上误报的 error 级规则，只会训练人们忽略告警**，久而久之整个质量体系就失效了。阈值设 2%：低于此视为可接受的上游噪声；超过则说明可能是我们的解析出了问题。另外，这个缺陷**不会污染事件研究**：事件面板的'论文年龄'是按面板网格重算的，而不是直接用这个派生列。"
+    },
+    {
+      "name": "OpenAlex：作品数不少于 3 万篇",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "全量应为 13.5 万篇。设 3 万的下限是为了在小样本试跑阶段（--max-pages 2）不会误报，同时又能拦住『抓取中途静默截断』这类事故。"
+    },
+    {
+      "name": "[交叉源] OpenAlex 与 Retraction Watch 的 DOI 可关联数不为零",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "两个数据源之间的关联完全依赖 DOI 格式统一。如果关联数为 0，说明 DOI 规范化（去前缀、转小写）有问题 ——而这不会报错，只会让所有跨源分析悄悄返回空结果。关联不上时最该怀疑的就是'键的格式不一致'，而不是'数据里正好没有'。"
+    },
+    {
+      "name": "[因果] 事件面板是平衡的（各时点样本量一致）",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "这是事件研究法的**命门**。如果不同事件时点上的论文不是同一批，那么曲线上的差异可能完全来自'样本换了一批人'，而不是撤稿的因果效应。一旦这条校验失败，后面所有因果结论都不成立 ——所以它必须是 error 级而不是 warning 级。"
+    },
+    {
+      "name": "[因果] 撤稿前窗口的反事实拟合无系统性偏差",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "反事实曲线本来就是用撤稿前的数据拟合出来的，所以撤稿前的 gap 理论上应接近 0。它明显偏离 0，说明拟合过程本身有问题（例如用错了窗口、聚合口径不一致）。这是结果表的**自检列** —— 一个自己能验证自己的模型，比只有输出的模型可信得多。"
+    },
+    {
+      "name": "[因果] 事件面板覆盖了完整的 −3…+2 窗口",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "窗口缺时点说明平衡面板的筛选条件写错了，会导致曲线不完整。6 = 撤稿前 3 年 + 撤稿当年 + 撤稿后 2 年。"
+    },
+    {
+      "name": "[交叉源] OpenAlex 与 RW 的 DOI 关联率不低于 40%",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "两个数据源的口径本就不同（一个标记'作品已撤稿'，一个记录'撤稿事件'），所以不可能 100% 匹配。实测约 73%，处于合理区间。但若跌到 40% 以下，多半是 DOI 规范化出了问题，而不是数据本身如此 ——关联率骤降时，第一个该怀疑的就是'键的格式'。"
+    },
+    {
+      "name": "[图分析] 社群成员表外键完整",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "成员表里出现不存在的社群编号，说明社群画像阶段过滤掉了一些社群（例如规模 <3 的），但成员表没有同步过滤。这会导致看板上'点开社群看成员'时出现空列表或错配。"
+    },
+    {
+      "name": "[图分析] 三人社群的密度饱和比例低于 99%",
+      "severity": "warning",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "这条规则记录了一个**已知的指标设计缺陷**，而不是在防未来的错误。实测：3 人社群中 92.8% 的密度恰好等于 1.0 ——因为 3 个节点最多只能构成 1 个三角形，只要合作过一次就是满密度。也就是说 density 在小规模区间几乎是常数、不含信息，而结构分给了它 45% 的权重，直接导致结构分 AUC 只有 0.336（反向预测）。阈值设 99%（高于当前的 92.8%）是为了：既不在每次运行时制造噪音告警，又能在指标进一步退化时发出信号。—— 把'已知缺陷'也写成可执行的校验，好处是它不会随着时间被遗忘。"
+    },
+    {
+      "name": "[图分析] 社群严重度分 AUC 高于 0.5",
+      "severity": "error",
+      "violations": 0,
+      "errored": false,
+      "execution_error": null,
+      "passed": true,
+      "rationale": "只需要有一个分数（严重度分）具备排序能力即可。结构分已知反向预测（AUC 0.336），这是被记录在案的负结果而非故障，所以这里用 MAX 而不是 MIN —— 避免把'已知的失败'当成'新的故障'来告警。"
+    }
+  ]
+}

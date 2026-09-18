@@ -30,7 +30,7 @@ import gzip
 import json
 import time
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -109,7 +109,7 @@ def _save_state(out_dir: Path, state: dict[str, Any]) -> None:
     原子写入把这种风险彻底消除。
     """
     path = _state_path(out_dir)
-    state["updated_at"] = datetime.now(timezone.utc).isoformat()
+    state["updated_at"] = datetime.now(UTC).isoformat()
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(path)
@@ -186,7 +186,7 @@ def fetch_retracted_works(
             "records_done": 0,
             "total": None,
             "complete": False,
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
         }
     else:
         logger.info(

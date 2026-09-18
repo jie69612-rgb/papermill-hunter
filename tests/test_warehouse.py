@@ -84,10 +84,54 @@ def test_missing_snapshot_gives_actionable_error(tmp_path) -> None:
 
 
 def test_connect_creates_warehouse_file(tmp_path) -> None:
+    """默认行为：仓库不存在时创建它（构建场景需要）。"""
     settings = Settings(data_dir=tmp_path / "data", contact_email="t@e.com")
     con = connect(settings)
     try:
         assert settings.warehouse_path.exists()
+        assert con.execute("SELECT 1").fetchone()[0] == 1
+    finally:
+        con.close()
+
+
+def test_connect_require_exists_raises_actionable_error(tmp_path) -> None:
+    """读取路径必须在仓库缺失时给出**可操作**的错误，而不是创建空库。
+
+    这条测试来自一次真实事故：DuckDB 的 ``connect(path)`` 在文件不存在时会
+    自动创建一个空数据库，于是"数据还没准备好"被悄悄变成了"数据库是空的"。
+    新用户克隆仓库后打开看板，看到的是
+    ``Catalog Error: Table "staging.retraction_watch" does not exist`` ——
+    既不解释原因，也不告诉你该做什么。
+
+    断言的三件事：
+      1. 抛出 FileNotFoundError（而不是让 DuckDB 抛 CatalogException）
+      2. 错误信息里包含**下一步该运行哪个脚本**
+      3. **磁盘上不留空文件** —— 否则下次构建时会让人困惑
+    """
+    settings = Settings(data_dir=tmp_path / "data", contact_email="t@e.com")
+
+    with pytest.raises(FileNotFoundError) as exc_info:
+        connect(settings, require_exists=True)
+
+    message = str(exc_info.value)
+    assert "数据仓库不存在" in message
+    # 错误信息必须告诉用户下一步做什么，否则等于没说
+    assert "03_build_warehouse" in message, f"错误信息缺少可操作指引：{message}"
+    # 最关键的一条：不能在磁盘上留下空文件
+    assert not settings.warehouse_path.exists(), (
+        "读取路径不应在磁盘上创建空的数据仓库文件 —— 这会污染后续的构建"
+    )
+
+
+def test_connect_require_exists_succeeds_when_present(tmp_path) -> None:
+    """仓库存在时，require_exists=True 应正常连接。"""
+    settings = Settings(data_dir=tmp_path / "data", contact_email="t@e.com")
+
+    # 先用默认行为创建
+    connect(settings).close()
+
+    con = connect(settings, require_exists=True)
+    try:
         assert con.execute("SELECT 1").fetchone()[0] == 1
     finally:
         con.close()

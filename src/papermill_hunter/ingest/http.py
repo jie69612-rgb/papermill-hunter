@@ -382,13 +382,9 @@ class ApiClient:
         effective_read_timeout = (
             read_timeout if read_timeout is not None else self.settings.download_read_timeout
         )
-        effective_attempts = (
-            max_attempts if max_attempts is not None else self.settings.download_max_attempts
-        )
+        effective_attempts = max_attempts if max_attempts is not None else self.settings.download_max_attempts
         effective_progress_mb = (
-            progress_every_mb
-            if progress_every_mb is not None
-            else self.settings.download_progress_every_mb
+            progress_every_mb if progress_every_mb is not None else self.settings.download_progress_every_mb
         )
         timeout = httpx.Timeout(
             connect=15.0,
@@ -418,9 +414,7 @@ class ApiClient:
                         resp.raise_for_status()
                         declared = resp.headers.get("Content-Length")
                         if declared:
-                            logger.info(
-                                "开始下载（服务端声明 %.1f MB）……", int(declared) / 1024 / 1024
-                            )
+                            logger.info("开始下载（服务端声明 %.1f MB）……", int(declared) / 1024 / 1024)
                         else:
                             logger.info("开始下载（服务端未声明大小，chunked 传输）……")
 
@@ -428,15 +422,28 @@ class ApiClient:
                             for chunk in resp.iter_raw(chunk_size):
                                 fh.write(chunk)
                                 total += len(chunk)
-                                if total >= next_report:
-                                    elapsed = time.monotonic() - attempt_started
+
+                                # 进度播报采用「二者取先」：累计字节达到阈值，**或者**
+                                # 距离上次播报超过 30 秒，就输出一次。
+                                #
+                                # 【为什么必须加时间维度】
+                                #   最初只按"每 5 MB 播报一次"。在一个 50 KB/s 的慢连接上，
+                                #   这意味着你要等 100 秒才看到第一行输出 ——
+                                #   完全无法区分"正在下载"和"已经卡死"，
+                                #   只能干等（本项目真的因此误判过一次，白等了 10 分钟）。
+                                #   慢连接恰恰是最需要进度反馈的场景，
+                                #   而纯字节阈值在慢连接上恰好失效。
+                                now_monotonic = time.monotonic()
+                                if total >= next_report_bytes or now_monotonic >= next_report_time:
+                                    elapsed = now_monotonic - attempt_started
                                     logger.info(
                                         "  已下载 %6.1f MB | %.0f KB/s | 已用 %.0fs",
                                         total / 1024 / 1024,
                                         total / elapsed / 1024 if elapsed > 0 else 0.0,
                                         elapsed,
                                     )
-                                    next_report += effective_progress_mb * 1024 * 1024
+                                    next_report_bytes = total + effective_progress_mb * 1024 * 1024
+                                    next_report_time = now_monotonic + 30.0
 
                     tmp.replace(dest)
                     elapsed = time.monotonic() - attempt_started

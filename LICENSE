@@ -1,0 +1,47 @@
+MIT License
+
+Copyright (c) 2026 jie69612-rgb
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## 关于本项目数据的说明
+
+本仓库中的**代码**以 MIT 协议开源。
+
+但请注意，本项目使用的**数据**来自第三方，遵循各自的许可条款：
+
+- **Retraction Watch Database** — 由 [Crossref](https://www.crossref.org/) 提供，
+  通过 [官方 GitLab 仓库](https://gitlab.com/crossref/retraction-watch-data) 分发。
+  数据本身不在本仓库中，由采集脚本按需拉取。
+- **OpenAlex** — 采用 [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) 公有领域贡献，
+  通过 [REST API](https://docs.openalex.org/) 获取。
+
+本仓库**不包含**任何原始数据文件（见 `.gitignore`），
+只包含可复现这些数据的代码。这样既避免了许可问题，
+也保证了"代码进版本库、数据靠一键重跑复现"这一数据项目的标准做法。
+
+## 免责声明
+
+本项目输出的所有针对具体期刊、机构、作者的评分、排名与社群划分，
+均为**统计筛查线索（screening leads）**，**不构成任何学术不端的指控或结论**。
+
+无监督异常检测方法在高密度、高产出的正常科研团队上同样可能给出高分。
+任何针对具体个人或机构的判断，都必须经过领域专家的人工核查。

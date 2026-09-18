@@ -90,9 +90,7 @@ def test_token_bucket_throttles_beyond_capacity() -> None:
     # 5 个请求，桶初始只有 1 个令牌，剩余 4 个要按 20/s 的速度攒
     # → 理论最短耗时 (5-1)/20 = 0.20 秒
     expected_min = 4 / rate
-    assert elapsed >= expected_min * 0.8, (
-        f"限流未生效：期望至少 {expected_min:.3f}s，实际 {elapsed:.3f}s"
-    )
+    assert elapsed >= expected_min * 0.8, f"限流未生效：期望至少 {expected_min:.3f}s，实际 {elapsed:.3f}s"
 
 
 # ----------------------------------------------------------------------
