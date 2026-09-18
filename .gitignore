@@ -1,0 +1,58 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------- 虚拟环境 ----------
+.venv/
+venv/
+env/
+
+# ---------- 数据文件 ----------
+# 原始数据体积大且可复现（由采集脚本重新拉取），不入库
+# 这是数据项目的标准做法：代码进 Git，数据靠"一键重跑"复现
+data/raw/*
+data/interim/*
+data/processed/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# 本地 DuckDB 数据库文件
+*.duckdb
+*.duckdb.wal
+
+# ---------- 缓存 ----------
+# 采集层的 HTTP 响应缓存，避免重复请求
+.cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# ---------- 密钥与本地配置 ----------
+# 采集需要填邮箱（进入 OpenAlex/Crossref 的 polite pool），属于个人配置
+.env
+!.env.example
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---------- Notebook ----------
+.ipynb_checkpoints/
+
+# ---------- 日志 ----------
+logs/
+*.log

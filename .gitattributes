@@ -1,0 +1,32 @@
+# 统一换行符处理。
+#
+# 为什么需要这个文件？
+#   Windows 用 CRLF，Linux/macOS 用 LF。同一个人在 Windows 上编辑、
+#   另一个人在 Linux 上克隆，如果没有统一约定，Git 会认为整个文件都变了
+#   （实际只是换行符不同），导致 diff 全是噪音、合并冲突不断。
+#
+# 约定：仓库里一律存 LF，检出到工作区时按平台自动转换。
+* text=auto eol=lf
+
+# 二进制文件不做任何换行符转换，否则会损坏文件
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.parquet binary
+*.duckdb  binary
+*.gz  binary
+
+# 这些文件必须保持 LF，否则会在 Linux/macOS 上无法执行或解析失败
+*.sh   text eol=lf
+Dockerfile text eol=lf
+
+# Windows 批处理必须用 CRLF
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Git 语言统计时不要把生成物算进来，否则会影响 GitHub 上的语言占比
+reports/** linguist-generated=true
+*.ipynb linguist-documentation

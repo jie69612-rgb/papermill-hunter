@@ -1,0 +1,36 @@
+[build-system]
+# setuptools>=64 起原生支持 PEP 660（可编辑安装 `pip install -e .`），
+# 门槛放低可以兼容更多环境，也不容易因为构建隔离下载失败而卡住。
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papermill-hunter"
+version = "0.1.0"
+description = "论文工厂猎手：全球撤稿监测与学术异常模式侦测"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "jie69612-rgb" }]
+keywords = ["data-analysis", "anomaly-detection", "causal-inference", "retraction", "research-integrity"]
+# 依赖统一在 requirements.txt 管理。
+# 故意不在这里重复声明，是为了避免"两处维护 → 版本漂移"这个经典坑。
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# ---------------- 测试 ----------------
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+# ---------------- 代码规范 ----------------
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]

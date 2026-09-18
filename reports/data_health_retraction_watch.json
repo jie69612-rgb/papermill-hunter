@@ -1,0 +1,49 @@
+{
+  "行数": 72602,
+  "列数": 20,
+  "缺失率最高的 5 列": {
+    "notes": 71.7,
+    "urls": 45.0,
+    "retraction_pubmed_id": 7.3,
+    "original_paper_pubmed_id": 7.3,
+    "original_paper_doi": 3.7
+  },
+  "撤稿日期范围": "1756-06-24 ~ 2026-09-11",
+  "撤稿日期无法解析的行数": 149,
+  "撤稿性质分布": {
+    "Retraction": 67050,
+    "Expression of concern": 3718,
+    "Correction": 1525,
+    "Reinstatement": 160
+  },
+  "国家分布 Top10（已拆分多值）": {
+    "China": 38404,
+    "United States": 7465,
+    "India": 6466,
+    "Russia": 3172,
+    "Saudi Arabia": 2585,
+    "Iran": 2191,
+    "United Kingdom": 2137,
+    "Japan": 1875,
+    "Pakistan": 1656,
+    "Germany": 1566
+  },
+  "撤稿原因 Top15（已拆分多值）": {
+    "Investigation by Journal/Publisher": 32181,
+    "Unreliable Results and/or Conclusions": 21996,
+    "Investigation by Third Party": 17966,
+    "Concerns/Issues about Data": 15925,
+    "Concerns/Issues about Referencing/Attributions": 15312,
+    "Notice - Limited or No Information": 12118,
+    "Compromised Peer Review": 11872,
+    "Paper Mill": 11798,
+    "Concerns/Issues about Peer Review": 11716,
+    "Concerns/Issues about Results and/or Conclusions": 10038,
+    "Computer-Aided Content or Computer-Generated Content": 9280,
+    "Date of Article and/or Notice Unknown": 7025,
+    "Duplication of/in Image": 5669,
+    "Breach of Policy by Author": 4792,
+    "Removed": 4073
+  },
+  "标注为 Paper Mill 的记录数": 11798
+}
